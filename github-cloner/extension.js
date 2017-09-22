@@ -1,6 +1,7 @@
 const vscode = require('vscode');
 const rp = require('request-promise');
 const child = require('child_process');
+const fs = require('fs');
 
 // Github Oauth2 token.
 const authToken = '';
@@ -16,7 +17,7 @@ function activate(context) {
         
         try {
             var options = {
-                url: 'https://api.github.com/user/repos',
+                url: 'https://api.github.com/user/repos?sort=updated',
                 headers: {
                     'authorization' : 'Bearer ' + authToken,
                     'Content-Type' : 'application/json',
@@ -31,9 +32,12 @@ function activate(context) {
             for (let i in repoList){
                 if (repoList[i].full_name == selected) {
                     try{
-                        vscode.window.showInformationMessage(`Cloning ${repoList[i].name} to ${projectDir}/${repoList[i].name}`);
-                        var res = await runCommand(`git clone ${repoList[i].ssh_url} ${projectDir}/${repoList[i].name}`);
-                        let uri = vscode.Uri.parse(`${projectDir}/${repoList[i].name}`);
+                        let targetPath = `${projectDir}/${repoList[i].name}`
+                        if (!fs.existsSync(targetPath)) {
+                            vscode.window.showInformationMessage(`Cloning ${repoList[i].name} to ${targetPath}`);
+                            var res = await runCommand(`git clone ${repoList[i].ssh_url} ${targetPath}`);    
+                        }
+                        let uri = vscode.Uri.parse(targetPath);
                         let success = await vscode.commands.executeCommand('vscode.openFolder', uri, true);
                     }
                     catch(err){
