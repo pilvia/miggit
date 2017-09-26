@@ -3,19 +3,48 @@ const rp = require('request-promise');
 const child = require('child_process');
 const fs = require('fs');
 
-// Github Oauth2 token.
-const authToken = '';
-
-// Default project dir.
-const projectDir = '';
-
 function activate(context) {
 
-    console.log('"github-cloner" is now active!');
+    var disposable = vscode.commands.registerCommand('extension.cloneGitReset', async () => {
+        try {
+            context.globalState.update('GitHubAuthToken', undefined);
+            context.globalState.update('defaultProjectDir', undefined);
+        }
+        catch(err) {
+            console.error(err);
+            vscode.window.showErrorMessage(err.message);
+        }
+    });
 
     var disposable = vscode.commands.registerCommand('extension.cloneGit', async () => {
         
         try {
+
+            let authToken = context.globalState.get('GitHubAuthToken', '');
+            if (!authToken) {
+                authToken = await vscode.window.showInputBox({placeHolder: 'GitHub authorization token?'});
+                context.globalState.update('GitHubAuthToken', authToken);
+            }
+
+            let projectDirs = context.globalState.get('defaultProjectDir', '');
+            if (!projectDirs) {
+                projectDir = await vscode.window.showInputBox({value: process.env.HOME + '/code', prompt: 'Default project directory?'});
+                projectDir = projectDir.replace(/\/$/, '');
+                context.globalState.update('defaultProjectDir', projectDir);
+            } else {
+                let projectDirList = [ ...projectDirs.split(','), 'Add new ...', 'Clear list ...' ];
+                projectDir = await vscode.window.showQuickPick( projectDirList, { placeHolder: 'Select project dir?' });
+                if (projectDir == 'Add new ...') {
+                    projectDir = await vscode.window.showInputBox({value: process.env.HOME + '/code', prompt: 'Default project directory?'});
+                    projectDir = projectDir.replace(/\/$/, '');
+                    context.globalState.update('defaultProjectDir', projectDirs+','+projectDir);
+                } else if (projectDir == 'Clear list ...') {
+                    projectDir = await vscode.window.showInputBox({value: process.env.HOME + '/code', prompt: 'Default project directory?'});
+                    projectDir = projectDir.replace(/\/$/, '');
+                    context.globalState.update('defaultProjectDir', projectDir);
+                }
+            }
+
             var options = {
                 url: 'https://api.github.com/user/repos?sort=updated',
                 headers: {
@@ -50,7 +79,7 @@ function activate(context) {
         }
         catch (err) {
             console.error(err);
-            vscode.window.showInformationMessage(selected);
+            vscode.window.showErrorMessage(err.message);
         }
     });
 

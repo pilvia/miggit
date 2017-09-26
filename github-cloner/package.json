@@ -11,7 +11,8 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.cloneGit"
+        "onCommand:extension.cloneGit",
+        "onCommand:extension.cloneGitReset"
     ],
     "main": "./extension",
     "contributes": {
@@ -19,6 +20,10 @@
             {
                 "command": "extension.cloneGit",
                 "title": "GitHub Cloner: Clone"
+            },
+            {
+                "command": "extension.cloneGitReset",
+                "title": "GitHub Cloner: Reset settings"
             }
         ]
     },
