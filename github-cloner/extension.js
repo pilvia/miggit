@@ -46,7 +46,7 @@ function activate(context) {
             }
 
             var options = {
-                url: 'https://api.github.com/user/repos?sort=updated',
+                url: 'https://api.github.com/user/repos?sort=updated&per_page=100',
                 headers: {
                     'authorization' : 'Bearer ' + authToken,
                     'Content-Type' : 'application/json',
